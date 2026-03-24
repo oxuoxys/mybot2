@@ -13,7 +13,7 @@ ADMIN_ID = 850268482
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# --- ВЕБ-СЕРВЕР ДЛЯ RENDER (Keep-alive) ---
+# --- ВЕБ-СЕРВЕР ДЛЯ RENDER ---
 async def handle(request):
     return web.Response(text="Bot is running 24/7!")
 
@@ -37,9 +37,27 @@ def main_menu_kb():
 
 def free_services_inline_kb():
     builder = InlineKeyboardBuilder()
-    builder.row(types.InlineKeyboardButton(text="💿 ISO Образ Windows", callback_data="free_windows"))
+    builder.row(types.InlineKeyboardButton(text="💿 ISO Образ Windows", callback_data="iso_menu"))
     builder.row(types.InlineKeyboardButton(text="⚙️ Оптимизация Windows", callback_data="free_opt"))
     builder.row(types.InlineKeyboardButton(text="🔑 Активация Windows", callback_data="free_act"))
+    return builder.as_markup()
+
+def iso_versions_kb():
+    builder = InlineKeyboardBuilder()
+    builder.row(types.InlineKeyboardButton(text="Windows 10", callback_data="iso_win10"))
+    # Ссылка для Windows 11
+    builder.row(types.InlineKeyboardButton(text="Windows 11", url="https://t.me/oxuoxys_iso/5"))
+    builder.row(types.InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_free"))
+    return builder.as_markup()
+
+def win10_arch_kb():
+    builder = InlineKeyboardBuilder()
+    # Ссылки для Windows 10 x64 и x86
+    builder.row(
+        types.InlineKeyboardButton(text="x64 (64 бит)", url="https://t.me/oxuoxys_iso_3/4"),
+        types.InlineKeyboardButton(text="x86 (32 бит)", url="https://t.me/oxuoxys_iso_2/5")
+    )
+    builder.row(types.InlineKeyboardButton(text="⬅️ Назад", callback_data="iso_menu"))
     return builder.as_markup()
 
 # --- ХЕНДЛЕРЫ ---
@@ -49,37 +67,40 @@ async def cmd_start(message: types.Message):
 
 @dp.message(F.text == "💎 Платные услуги")
 async def paid_services(message: types.Message):
-    await message.answer(
-        "<b>💎 Наши платные услуги:</b>\n\n"
-        "• Полная настройка системы под ключ\n"
-        "• Удаленная помощь через AnyDesk\n\n"
-        "<i>Напиши сюда свой вопрос, чтобы связаться с мастером.</i>", 
-        parse_mode="HTML"
-    )
+    await message.answer("<b>💎 Наши платные услуги:</b>\n\n• Полная настройка системы под ключ\n• Удаленная помощь через AnyDesk\n\n<i>Напиши сюда свой вопрос, чтобы связаться с мастером.</i>", parse_mode="HTML")
 
 @dp.message(F.text == "🎁 Бесплатные услуги")
 async def free_services(message: types.Message):
     await message.answer("<b>🎁 Список бесплатных услуг:</b>", reply_markup=free_services_inline_kb(), parse_mode="HTML")
 
-@dp.callback_query(F.data == "free_windows")
-async def handle_free_win(callback: types.CallbackQuery):
-    await callback.message.answer("К сожалению, выдача образов пока в разработке, но вы можете получить бесплатные ISO образы в боте @WinISO_bot")
+# Логика ISO образов
+@dp.callback_query(F.data == "iso_menu")
+async def handle_iso_menu(callback: types.CallbackQuery):
+    await callback.message.edit_text("Выберите версию Windows:", reply_markup=iso_versions_kb())
+    await callback.answer()
+
+@dp.callback_query(F.data == "iso_win10")
+async def handle_win10_select(callback: types.CallbackQuery):
+    await callback.message.edit_text("Выберите разрядность для Windows 10:", reply_markup=win10_arch_kb())
+    await callback.answer()
+
+@dp.callback_query(F.data == "back_to_free")
+async def handle_back_free(callback: types.CallbackQuery):
+    await callback.message.edit_text("<b>🎁 Список бесплатных услуг:</b>", reply_markup=free_services_inline_kb(), parse_mode="HTML")
     await callback.answer()
 
 @dp.callback_query(F.data == "free_opt")
 async def handle_opt(callback: types.CallbackQuery):
     text = (
         "<b>⚙️ Инструкция по оптимизации ПК:</b>\n\n"
-        "Чтобы ускорить ваш компьютер, следуйте этим шагам:\n\n"
         "1. <b>Обязательно</b> создайте точку восстановления в Windows перед началом.\n"
         "2. Нажмите <b>правой кнопкой мыши</b> на кнопку «Пуск».\n"
-        "3. Выберите <b>PowerShell (Админ)</b> или <b>Terminal (Admin)</b>.\n"
-        "4. Скопируйте и вставьте следующую команду:\n\n"
+        "3. Выберите <b>PowerShell (Админ)</b>.\n"
+        "4. Скопируйте и вставьте команду:\n"
         "<code>irm https://christitus.com | iex</code>\n\n"
         "5. В открывшемся окне перейдите в раздел <b>Tweaks</b>.\n"
         "6. Нажмите на кнопку <b>Standard</b>.\n"
-        "7. Нажмите <b>Run Tweaks</b> и дождитесь завершения процесса.\n\n"
-        "<i>(Команда выше копируется автоматически при нажатии)</i>"
+        "7. Нажмите <b>Run Tweaks</b> и дождитесь завершения процесса."
     )
     await callback.message.answer(text, parse_mode="HTML")
     await callback.answer()
@@ -88,26 +109,19 @@ async def handle_opt(callback: types.CallbackQuery):
 async def handle_activation(callback: types.CallbackQuery):
     text = (
         "<b>🔑 Инструкция по активации Windows:</b>\n\n"
-        "Чтобы активировать Windows навсегда, выполните следующие действия:\n\n"
         "1. Нажмите <b>правой кнопкой мыши</b> на кнопку «Пуск».\n"
-        "2. Выберите <b>Terminal (Admin)</b> или <b>PowerShell (Админ)</b>.\n"
-        "3. Скопируйте и вставьте команду ниже:\n\n"
+        "2. Выберите <b>PowerShell (Админ)</b>.\n"
+        "3. Вставьте команду:\n"
         "<code>irm https://get.activated.win | iex</code>\n\n"
         "4. Нажмите Enter и дождитесь открытия окна.\n"
-        "5. В открывшемся окне нажмите клавишу <b>1</b> на клавиатуре.\n\n"
-        "<i>(Нажмите на команду выше, чтобы она скопировалась автоматически)</i>"
+        "5. В открывшемся окне нажмите клавишу <b>1</b> на клавиатуре."
     )
     await callback.message.answer(text, parse_mode="HTML")
     await callback.answer()
 
 @dp.message(F.text == "💰 Поддержать автора")
 async def support_author(message: types.Message):
-    await message.answer(
-        "Спасибо что хочешь поддержать мой проект, поддержать можно переводом на карту:\n\n"
-        "<code>2200 2061 0291 2966</code> (сбер)\n\n"
-        "<i>(Нажми на номер выше, чтобы он скопировался)</i>", 
-        parse_mode="HTML"
-    )
+    await message.answer("Спасибо за поддержку! ❤️\n\nКарта (Сбер): <code>2200 2061 0291 2966</code>\n<i>(Нажми на номер, чтобы скопировать)</i>", parse_mode="HTML")
 
 # --- ОБРАТНАЯ СВЯЗЬ ---
 @dp.message(F.chat.id != ADMIN_ID)
@@ -121,16 +135,12 @@ async def forward_to_admin(message: types.Message):
 @dp.message(F.chat.id == ADMIN_ID, F.reply_to_message)
 async def reply_to_user(message: types.Message):
     try:
-        # Пытаемся достать ID из уведомления или пересылки
         target_id = message.reply_to_message.forward_from.id if message.reply_to_message.forward_from else None
-        
         if target_id:
             await bot.send_message(target_id, f"<b>Ответ мастера:</b>\n\n{message.text}", parse_mode="HTML")
             await message.answer("✅ Ответ доставлен.")
-        else:
-            await message.answer("❌ Не удалось определить ID пользователя (скрыт приватностью).")
-    except Exception as e:
-        await message.answer(f"❌ Ошибка: {e}")
+    except Exception:
+        await message.answer("❌ Скрытый ID пользователя.")
 
 # --- ЗАПУСК ---
 async def main():
@@ -140,7 +150,5 @@ async def main():
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except (KeyboardInterrupt, SystemExit):
-        print("Бот остановлен")
+    asyncio.run(main())
+
