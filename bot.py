@@ -4,6 +4,7 @@ import os
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
+from aiogram.types import FSInputFile
 from aiohttp import web
 
 # --- НАСТРОЙКИ ---
@@ -40,22 +41,22 @@ def free_services_inline_kb():
     builder.row(types.InlineKeyboardButton(text="💿 ISO Образ Windows", callback_data="iso_menu"))
     builder.row(types.InlineKeyboardButton(text="⚙️ Оптимизация Windows", callback_data="free_opt"))
     builder.row(types.InlineKeyboardButton(text="🔑 Активация Windows", callback_data="free_act"))
+    builder.row(types.InlineKeyboardButton(text="🛡 Windows Defender Remover", callback_data="free_defender"))
+    builder.adjust(1)
     return builder.as_markup()
 
 def iso_versions_kb():
     builder = InlineKeyboardBuilder()
     builder.row(types.InlineKeyboardButton(text="Windows 10", callback_data="iso_win10"))
-    # Ссылка для Windows 11
-    builder.row(types.InlineKeyboardButton(text="Windows 11", url="https://t.me/oxuoxys_iso/5"))
+    builder.row(types.InlineKeyboardButton(text="Windows 11", url="https://t.me"))
     builder.row(types.InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_free"))
     return builder.as_markup()
 
 def win10_arch_kb():
     builder = InlineKeyboardBuilder()
-    # Ссылки для Windows 10 x64 и x86
     builder.row(
-        types.InlineKeyboardButton(text="x64 (64 бит)", url="https://t.me/oxuoxys_iso_3/4"),
-        types.InlineKeyboardButton(text="x86 (32 бит)", url="https://t.me/oxuoxys_iso_2/5")
+        types.InlineKeyboardButton(text="x64 (64 бит)", url="https://t.me"),
+        types.InlineKeyboardButton(text="x86 (32 бит)", url="https://t.me")
     )
     builder.row(types.InlineKeyboardButton(text="⬅️ Назад", callback_data="iso_menu"))
     return builder.as_markup()
@@ -73,7 +74,7 @@ async def paid_services(message: types.Message):
 async def free_services(message: types.Message):
     await message.answer("<b>🎁 Список бесплатных услуг:</b>", reply_markup=free_services_inline_kb(), parse_mode="HTML")
 
-# Логика ISO образов
+# ISO меню
 @dp.callback_query(F.data == "iso_menu")
 async def handle_iso_menu(callback: types.CallbackQuery):
     await callback.message.edit_text("Выберите версию Windows:", reply_markup=iso_versions_kb())
@@ -89,10 +90,12 @@ async def handle_back_free(callback: types.CallbackQuery):
     await callback.message.edit_text("<b>🎁 Список бесплатных услуг:</b>", reply_markup=free_services_inline_kb(), parse_mode="HTML")
     await callback.answer()
 
+# Оптимизация
 @dp.callback_query(F.data == "free_opt")
 async def handle_opt(callback: types.CallbackQuery):
     text = (
         "<b>⚙️ Инструкция по оптимизации ПК:</b>\n\n"
+        "Чтобы ускорить ваш компьютер, следуйте этим шагам:\n\n"
         "1. <b>Обязательно</b> создайте точку восстановления в Windows перед началом.\n"
         "2. Нажмите <b>правой кнопкой мыши</b> на кнопку «Пуск».\n"
         "3. Выберите <b>PowerShell (Админ)</b>.\n"
@@ -105,10 +108,12 @@ async def handle_opt(callback: types.CallbackQuery):
     await callback.message.answer(text, parse_mode="HTML")
     await callback.answer()
 
+# Активация
 @dp.callback_query(F.data == "free_act")
 async def handle_activation(callback: types.CallbackQuery):
     text = (
         "<b>🔑 Инструкция по активации Windows:</b>\n\n"
+        "Чтобы активировать Windows навсегда, выполните действия:\n\n"
         "1. Нажмите <b>правой кнопкой мыши</b> на кнопку «Пуск».\n"
         "2. Выберите <b>PowerShell (Админ)</b>.\n"
         "3. Вставьте команду:\n"
@@ -119,9 +124,29 @@ async def handle_activation(callback: types.CallbackQuery):
     await callback.message.answer(text, parse_mode="HTML")
     await callback.answer()
 
+# Windows Defender Remover (ОТПРАВКА ФАЙЛА)
+@dp.callback_query(F.data == "free_defender")
+async def handle_defender(callback: types.CallbackQuery):
+    file_path = "Windows_Defender_Remover.exe" # Файл должен лежать в папке с ботом
+    if os.path.exists(file_path):
+        document = FSInputFile(file_path)
+        await callback.message.answer_document(
+            document, 
+            caption="Это приложение надо запустить, нажать английскую <b>A</b> на клавиатуре и, если надо, нажать Enter.",
+            parse_mode="HTML"
+        )
+    else:
+        await callback.message.answer("❌ Файл Windows_Defender_Remover.exe не найден на сервере.")
+    await callback.answer()
+
 @dp.message(F.text == "💰 Поддержать автора")
 async def support_author(message: types.Message):
-    await message.answer("Спасибо за поддержку! ❤️\n\nКарта (Сбер): <code>2200 2061 0291 2966</code>\n<i>(Нажми на номер, чтобы скопировать)</i>", parse_mode="HTML")
+    await message.answer(
+        "Спасибо что хочешь поддержать мой проект, поддержать можно переводом на карту:\n\n"
+        "<code>2200 2061 0291 2966</code> (сбер)\n\n"
+        "<i>(Нажми на номер выше, чтобы он скопировался)</i>", 
+        parse_mode="HTML"
+    )
 
 # --- ОБРАТНАЯ СВЯЗЬ ---
 @dp.message(F.chat.id != ADMIN_ID)
@@ -151,4 +176,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
