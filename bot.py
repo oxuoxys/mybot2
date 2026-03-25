@@ -42,6 +42,7 @@ def free_services_inline_kb():
     builder.row(types.InlineKeyboardButton(text="⚙️ Оптимизация Windows", callback_data="free_opt"))
     builder.row(types.InlineKeyboardButton(text="🔑 Активация Windows", callback_data="free_act"))
     builder.row(types.InlineKeyboardButton(text="🛡 Windows Defender Remover", callback_data="free_defender"))
+    builder.row(types.InlineKeyboardButton(text="💾 Rufus", callback_data="free_rufus"))
     builder.adjust(1)
     return builder.as_markup()
 
@@ -74,7 +75,6 @@ async def paid_services(message: types.Message):
 async def free_services(message: types.Message):
     await message.answer("<b>🎁 Список бесплатных услуг:</b>", reply_markup=free_services_inline_kb(), parse_mode="HTML")
 
-# ISO меню
 @dp.callback_query(F.data == "iso_menu")
 async def handle_iso_menu(callback: types.CallbackQuery):
     await callback.message.edit_text("Выберите версию Windows:", reply_markup=iso_versions_kb())
@@ -90,7 +90,6 @@ async def handle_back_free(callback: types.CallbackQuery):
     await callback.message.edit_text("<b>🎁 Список бесплатных услуг:</b>", reply_markup=free_services_inline_kb(), parse_mode="HTML")
     await callback.answer()
 
-# Оптимизация
 @dp.callback_query(F.data == "free_opt")
 async def handle_opt(callback: types.CallbackQuery):
     text = (
@@ -108,7 +107,6 @@ async def handle_opt(callback: types.CallbackQuery):
     await callback.message.answer(text, parse_mode="HTML")
     await callback.answer()
 
-# Активация
 @dp.callback_query(F.data == "free_act")
 async def handle_activation(callback: types.CallbackQuery):
     text = (
@@ -124,19 +122,31 @@ async def handle_activation(callback: types.CallbackQuery):
     await callback.message.answer(text, parse_mode="HTML")
     await callback.answer()
 
-# Windows Defender Remover (ОТПРАВКА ФАЙЛА)
+# ХЕНДЛЕРЫ ОТПРАВКИ ФАЙЛОВ
 @dp.callback_query(F.data == "free_defender")
 async def handle_defender(callback: types.CallbackQuery):
-    file_path = "Windows_Defender_Remover.exe" # Файл должен лежать в папке с ботом
+    file_path = "Windows_Defender_Remover.exe"
     if os.path.exists(file_path):
-        document = FSInputFile(file_path)
         await callback.message.answer_document(
-            document, 
+            FSInputFile(file_path), 
             caption="Это приложение надо запустить, нажать английскую <b>A</b> на клавиатуре и, если надо, нажать Enter.",
             parse_mode="HTML"
         )
     else:
-        await callback.message.answer("❌ Файл Windows_Defender_Remover.exe не найден на сервере.")
+        await callback.message.answer("❌ Файл Windows_Defender_Remover.exe не найден.")
+    await callback.answer()
+
+@dp.callback_query(F.data == "free_rufus")
+async def handle_rufus(callback: types.CallbackQuery):
+    file_path = "Rufus.exe"
+    if os.path.exists(file_path):
+        await callback.message.answer_document(
+            FSInputFile(file_path), 
+            caption="Это программа для загрузки ISO образа Windows на флешку.",
+            parse_mode="HTML"
+        )
+    else:
+        await callback.message.answer("❌ Файл Rufus.exe не найден.")
     await callback.answer()
 
 @dp.message(F.text == "💰 Поддержать автора")
