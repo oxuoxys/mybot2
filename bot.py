@@ -65,8 +65,8 @@ def win10_arch_kb():
 
 def office_menu_kb():
     builder = InlineKeyboardBuilder()
-    builder.row(types.InlineKeyboardButton(text="Office 2024", url="https://t.me"))
-    builder.row(types.InlineKeyboardButton(text="Office 2021", url="https://t.me/oxuoxys_office_2/3"))
+    builder.row(types.InlineKeyboardButton(text="Office 2024", url="https://t.me/oxuoxys_office/3"))
+    builder.row(types.InlineKeyboardButton(text="Office 2021", url="https://t.me"))
     builder.row(types.InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_free"))
     return builder.as_markup()
 
@@ -89,7 +89,7 @@ async def paid_services(message: types.Message):
 async def free_services(message: types.Message):
     await message.answer("<b>🎁 Список бесплатных услуг:</b>", reply_markup=free_services_inline_kb(), parse_mode="HTML")
 
-# ISO меню
+# Навигация и меню
 @dp.callback_query(F.data == "iso_menu")
 async def handle_iso_menu(callback: types.CallbackQuery):
     await callback.message.edit_text("Выберите версию Windows:", reply_markup=iso_versions_kb())
@@ -100,13 +100,11 @@ async def handle_win10_select(callback: types.CallbackQuery):
     await callback.message.edit_text("Выберите разрядность для Windows 10:", reply_markup=win10_arch_kb())
     await callback.answer()
 
-# Office меню
 @dp.callback_query(F.data == "office_menu")
 async def handle_office_menu(callback: types.CallbackQuery):
     await callback.message.edit_text("Выберите версию Microsoft Office:", reply_markup=office_menu_kb())
     await callback.answer()
 
-# Навигация Назад
 @dp.callback_query(F.data == "back_to_free")
 async def handle_back_free(callback: types.CallbackQuery):
     await callback.message.edit_text("<b>🎁 Список бесплатных услуг:</b>", reply_markup=free_services_inline_kb(), parse_mode="HTML")
