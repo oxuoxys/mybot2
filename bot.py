@@ -14,7 +14,7 @@ ADMIN_ID = 850268482
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# --- ВЕБ-СЕРВЕР ДЛЯ RENDER ---
+# --- ВЕБ-СЕРВЕР ДЛЯ RENDER (Keep-alive) ---
 async def handle(request):
     return web.Response(text="Bot is running 24/7!")
 
@@ -39,6 +39,7 @@ def main_menu_kb():
 def free_services_inline_kb():
     builder = InlineKeyboardBuilder()
     builder.row(types.InlineKeyboardButton(text="💿 ISO Образ Windows", callback_data="iso_menu"))
+    builder.row(types.InlineKeyboardButton(text="📊 Microsoft Office", callback_data="office_menu"))
     builder.row(types.InlineKeyboardButton(text="⚙️ Оптимизация Windows", callback_data="free_opt"))
     builder.row(types.InlineKeyboardButton(text="🔑 Активация Windows", callback_data="free_act"))
     builder.row(types.InlineKeyboardButton(text="🛡 Windows Defender Remover", callback_data="free_defender"))
@@ -62,6 +63,13 @@ def win10_arch_kb():
     builder.row(types.InlineKeyboardButton(text="⬅️ Назад", callback_data="iso_menu"))
     return builder.as_markup()
 
+def office_menu_kb():
+    builder = InlineKeyboardBuilder()
+    builder.row(types.InlineKeyboardButton(text="Office 2024", url="https://t.me"))
+    builder.row(types.InlineKeyboardButton(text="Office 2021", url="https://t.me/oxuoxys_office_2/3"))
+    builder.row(types.InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_free"))
+    return builder.as_markup()
+
 # --- ХЕНДЛЕРЫ ---
 @dp.message(CommandStart())
 async def cmd_start(message: types.Message):
@@ -69,12 +77,19 @@ async def cmd_start(message: types.Message):
 
 @dp.message(F.text == "💎 Платные услуги")
 async def paid_services(message: types.Message):
-    await message.answer("<b>💎 Наши платные услуги:</b>\n\n• Полная настройка системы под ключ\n• Удаленная помощь через AnyDesk\n\n<i>Напиши сюда свой вопрос, чтобы связаться с мастером.</i>", parse_mode="HTML")
+    await message.answer(
+        "<b>💎 Наши платные услуги:</b>\n\n"
+        "• Полная настройка системы под ключ\n"
+        "• Удаленная помощь через AnyDesk\n\n"
+        "<i>Напиши сюда свой вопрос, чтобы связаться с мастером.</i>", 
+        parse_mode="HTML"
+    )
 
 @dp.message(F.text == "🎁 Бесплатные услуги")
 async def free_services(message: types.Message):
     await message.answer("<b>🎁 Список бесплатных услуг:</b>", reply_markup=free_services_inline_kb(), parse_mode="HTML")
 
+# ISO меню
 @dp.callback_query(F.data == "iso_menu")
 async def handle_iso_menu(callback: types.CallbackQuery):
     await callback.message.edit_text("Выберите версию Windows:", reply_markup=iso_versions_kb())
@@ -85,11 +100,19 @@ async def handle_win10_select(callback: types.CallbackQuery):
     await callback.message.edit_text("Выберите разрядность для Windows 10:", reply_markup=win10_arch_kb())
     await callback.answer()
 
+# Office меню
+@dp.callback_query(F.data == "office_menu")
+async def handle_office_menu(callback: types.CallbackQuery):
+    await callback.message.edit_text("Выберите версию Microsoft Office:", reply_markup=office_menu_kb())
+    await callback.answer()
+
+# Навигация Назад
 @dp.callback_query(F.data == "back_to_free")
 async def handle_back_free(callback: types.CallbackQuery):
     await callback.message.edit_text("<b>🎁 Список бесплатных услуг:</b>", reply_markup=free_services_inline_kb(), parse_mode="HTML")
     await callback.answer()
 
+# Оптимизация
 @dp.callback_query(F.data == "free_opt")
 async def handle_opt(callback: types.CallbackQuery):
     text = (
@@ -107,6 +130,7 @@ async def handle_opt(callback: types.CallbackQuery):
     await callback.message.answer(text, parse_mode="HTML")
     await callback.answer()
 
+# Активация
 @dp.callback_query(F.data == "free_act")
 async def handle_activation(callback: types.CallbackQuery):
     text = (
@@ -122,14 +146,14 @@ async def handle_activation(callback: types.CallbackQuery):
     await callback.message.answer(text, parse_mode="HTML")
     await callback.answer()
 
-# ХЕНДЛЕРЫ ОТПРАВКИ ФАЙЛОВ
+# Файлы
 @dp.callback_query(F.data == "free_defender")
 async def handle_defender(callback: types.CallbackQuery):
     file_path = "Windows_Defender_Remover.exe"
     if os.path.exists(file_path):
         await callback.message.answer_document(
             FSInputFile(file_path), 
-            caption="Это приложение надо запустить, нажать английскую <b>A</b> на клавиатуре и, если надо, нажать Enter.",
+            caption="Запустить, нажать <b>A</b> и Enter.", 
             parse_mode="HTML"
         )
     else:
@@ -142,7 +166,7 @@ async def handle_rufus(callback: types.CallbackQuery):
     if os.path.exists(file_path):
         await callback.message.answer_document(
             FSInputFile(file_path), 
-            caption="Это программа для загрузки ISO образа Windows на флешку.",
+            caption="Программа для записи ISO на флешку.", 
             parse_mode="HTML"
         )
     else:
@@ -175,7 +199,7 @@ async def reply_to_user(message: types.Message):
             await bot.send_message(target_id, f"<b>Ответ мастера:</b>\n\n{message.text}", parse_mode="HTML")
             await message.answer("✅ Ответ доставлен.")
     except Exception:
-        await message.answer("❌ Скрытый ID пользователя.")
+        await message.answer("❌ Ошибка отправки.")
 
 # --- ЗАПУСК ---
 async def main():
