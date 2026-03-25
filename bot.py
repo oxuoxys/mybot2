@@ -50,15 +50,15 @@ def free_services_inline_kb():
 def iso_versions_kb():
     builder = InlineKeyboardBuilder()
     builder.row(types.InlineKeyboardButton(text="Windows 10", callback_data="iso_win10"))
-    builder.row(types.InlineKeyboardButton(text="Windows 11", url="https://t.me"))
+    builder.row(types.InlineKeyboardButton(text="Windows 11", url="https://t.me/oxuoxys_iso/5"))
     builder.row(types.InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_free"))
     return builder.as_markup()
 
 def win10_arch_kb():
     builder = InlineKeyboardBuilder()
     builder.row(
-        types.InlineKeyboardButton(text="x64 (64 бит)", url="https://t.me"),
-        types.InlineKeyboardButton(text="x86 (32 бит)", url="https://t.me")
+        types.InlineKeyboardButton(text="x64 (64 бит)", url="https://t.me/oxuoxys_iso_3/4"),
+        types.InlineKeyboardButton(text="x86 (32 бит)", url="https://t.me/oxuoxys_iso_2/5")
     )
     builder.row(types.InlineKeyboardButton(text="⬅️ Назад", callback_data="iso_menu"))
     return builder.as_markup()
@@ -66,7 +66,7 @@ def win10_arch_kb():
 def office_menu_kb():
     builder = InlineKeyboardBuilder()
     builder.row(types.InlineKeyboardButton(text="Office 2024", url="https://t.me/oxuoxys_office/3"))
-    builder.row(types.InlineKeyboardButton(text="Office 2021", url="https://t.me"))
+    builder.row(types.InlineKeyboardButton(text="Office 2021", url="https://t.me/oxuoxys_office_2/3"))
     builder.row(types.InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_free"))
     return builder.as_markup()
 
